@@ -1,0 +1,189 @@
+import { ArrowLeft, Plus } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { AutoSaveInput } from "../components/AutoSaveInput";
+import { AutoSaveTextarea } from "../components/AutoSaveTextarea";
+import { MetaChips } from "../components/MetaChips";
+import { QuestionTextEditor } from "../components/QuestionTextEditor";
+import { StatusSwitcher } from "../components/StatusSwitcher";
+import { TagInput } from "../components/TagInput";
+import { formatDateTime } from "../lib/utils";
+import { useQuestionStore } from "../store/useQuestionStore";
+import type { QuestionPatch } from "../store/useQuestionStore";
+
+/**
+ * 题目详情页（/question/:id）
+ * 左侧是内容编辑区（题目原文 / 9 分答案 / 高级词语 / 改进问题 / 我的思路），
+ * 右侧是练习记录卡（状态切换、次数 +1、最后练习时间）。
+ */
+export default function QuestionDetail() {
+  const { id } = useParams<{ id: string }>();
+  const question = useQuestionStore((state) =>
+    state.questions.find((item) => item.id === id)
+  );
+  const loaded = useQuestionStore((state) => state.loaded);
+  const updateQuestion = useQuestionStore((state) => state.updateQuestion);
+  const incrementPractice = useQuestionStore((state) => state.incrementPractice);
+  const setStatus = useQuestionStore((state) => state.setStatus);
+
+  if (!question) {
+    return (
+      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-card">
+        <h1 className="text-lg font-semibold text-slate-900">
+          {loaded ? "没有找到这道题" : "正在加载题库…"}
+        </h1>
+        {loaded ? (
+          <p className="mt-2 text-sm text-slate-500">
+            题目 id「{id}」不存在，可能已被删除或题库文件已更新。
+          </p>
+        ) : null}
+        <Link
+          to="/"
+          className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          返回题库
+        </Link>
+      </div>
+    );
+  }
+
+  const patch = (values: QuestionPatch) => updateQuestion(question.id, values);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          返回题库
+        </Link>
+        <MetaChips question={question} />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="space-y-5">
+          <section className="card">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <AutoSaveInput
+                label="标题（英文）"
+                value={question.title}
+                onSave={(next) => patch({ title: next })}
+                placeholder="Travelling"
+                inputClassName="font-semibold"
+              />
+              <AutoSaveInput
+                label="题目中文（可选）"
+                value={question.titleZh ?? ""}
+                onSave={(next) => patch({ titleZh: next })}
+                placeholder="旅行"
+              />
+            </div>
+
+            <div className="mt-6">
+              <p className="card-title mb-2">题目原文（英文）</p>
+              <QuestionTextEditor
+                key={question.id}
+                questions={question.questions}
+                onChange={(next) => patch({ questions: next })}
+              />
+            </div>
+          </section>
+
+          <section className="card">
+            <AutoSaveTextarea
+              label="9 分答案"
+              value={question.ninePointAnswer}
+              onSave={(next) => patch({ ninePointAnswer: next })}
+              rows={14}
+              serif
+              showCount
+              placeholder={"I'd say the metro is my go-to option…\n\n建议写完整段落，方便出声练习时直接照着说。"}
+              hint="写考场上真的能说出口的版本，比堆难词更管用。"
+            />
+          </section>
+
+          <section className="card">
+            <p className="card-title mb-3">参考高级词语</p>
+            <TagInput
+              tags={question.advancedWords}
+              onChange={(next) => patch({ advancedWords: next })}
+            />
+            <p className="mt-2 text-xs text-slate-400">
+              只收藏自己真的会用进句子里的表达，避免考场想不起来。
+            </p>
+          </section>
+
+          <section className="card">
+            <AutoSaveTextarea
+              label="改进问题"
+              value={question.improvementIssues}
+              onSave={(next) => patch({ improvementIssues: next })}
+              rows={6}
+              placeholder={"例如：\n- 时态前后不一致\n- 连接词只有 and / but\n- 答案太短，缺少原因和例子"}
+              hint="记录每次练习暴露的问题，下次练习前先过一遍。"
+            />
+          </section>
+
+          <section className="card">
+            <AutoSaveTextarea
+              label="我的思路"
+              value={question.myThoughts}
+              onSave={(next) => patch({ myThoughts: next })}
+              rows={8}
+              placeholder={"关键词提纲 / 结构 / 可套用的个人例子…"}
+              hint="Part 2 建议按 4 个关键词写提纲，考场上只记关键词不背原文。"
+            />
+          </section>
+        </div>
+
+        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <section className="card">
+            <h2 className="text-sm font-semibold text-slate-900">练习记录</h2>
+            <div className="mt-3">
+              <StatusSwitcher
+                value={question.status}
+                onChange={(status) => setStatus(question.id, status)}
+              />
+            </div>
+            <dl className="mt-4 space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <dt className="text-slate-500">练习次数</dt>
+                <dd className="font-semibold tabular-nums text-slate-900">
+                  {question.practiceCount} 次
+                </dd>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <dt className="shrink-0 text-slate-500">最后练习</dt>
+                <dd className="text-right tabular-nums text-slate-700">
+                  {formatDateTime(question.lastPracticeDate)}
+                </dd>
+              </div>
+            </dl>
+            <button
+              type="button"
+              onClick={() => incrementPractice(question.id)}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800"
+            >
+              <Plus className="h-4 w-4" />
+              练习次数 +1
+            </button>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">
+              点击后自动把当前时间记为最后练习日期；首次练习会从「未练」升级为「练过」。
+            </p>
+          </section>
+
+          <section className="card text-xs leading-relaxed text-slate-500">
+            <p className="text-sm font-semibold text-slate-700">小提示</p>
+            <ul className="mt-2 list-disc space-y-1 pl-4">
+              <li>所有输入框停止输入 500ms 后自动保存到浏览器本地。</li>
+              <li>换设备之前，记得在「设置」页导出 JSON 备份。</li>
+              <li>题目原文支持多行，Part 2 可以写卡片描述再写追问。</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}

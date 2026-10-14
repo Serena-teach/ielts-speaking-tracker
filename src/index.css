@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+
+  /* 长时间阅读场景：输入框行距略放松 */
+  textarea,
+  input {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  /* 全站统一的卡片样式 */
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-card sm:p-6;
+  }
+
+  .card-title {
+    @apply text-sm font-semibold uppercase tracking-wide text-slate-500;
+  }
+}
+
+@layer utilities {
+  /* 细一点的滚动条，避免长文本域右侧出现粗黑条 */
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

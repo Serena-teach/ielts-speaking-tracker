@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# 单页应用：所有路径都回退到 index.html，深链接刷新不会 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
