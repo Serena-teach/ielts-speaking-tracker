@@ -18,6 +18,9 @@ SENTENCE_END_RE = re.compile(r"^You should say[:：]\s*(.+)$")
 
 
 def reformat_part23(question):
+    # 幂等保护：已经整理成【Part 2】/【Part 3】两大块的题再跑一次会破坏结构，直接跳过
+    if question.get("questions") and question["questions"][0].strip() == "【Part 2】":
+        return
     """Part 2&3 的题目原文：合并成一个 Part 2 块（卡片题 + you should say 要点）和一个 Part 3 块（编号追问）。"""
     title = ""
     bullets = []
