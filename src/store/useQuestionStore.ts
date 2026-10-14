@@ -209,6 +209,8 @@ type QuestionStore = {
   updateQuestion: (id: string, patch: QuestionPatch) => void;
   /** 练习次数 +1，同时自动记录最后练习日期 */
   incrementPractice: (id: string) => void;
+  /** 撤销一次练习记录（次数 -1；减到 0 时清空最后练习时间并回到「未练」） */
+  decrementPractice: (id: string) => void;
   /** 直接切换练习状态 */
   setStatus: (id: string, status: PracticeStatus) => void;
   /** 清空所有本地数据，恢复到题库原始状态 */
@@ -308,6 +310,21 @@ export const useQuestionStore = create<QuestionStore>((set, get) => {
         };
         // 第一次练习时自动从「未练」升级为「练过」，用户之后仍可手动改回
         if (question.status === "not-practiced") patch.status = "practiced";
+        return commit(state, id, patch);
+      });
+    },
+
+    decrementPractice: (id) => {
+      set((state) => {
+        const question = state.questions.find((item) => item.id === id);
+        if (!question || (question.practiceCount ?? 0) <= 0) return {};
+        const nextCount = (question.practiceCount ?? 0) - 1;
+        const patch: QuestionPatch = { practiceCount: nextCount };
+        if (nextCount === 0) {
+          // 撤销到 0 次：清空最后练习时间，并把「练过」退回「未练」
+          patch.lastPracticeDate = undefined;
+          if (question.status === "practiced") patch.status = "not-practiced";
+        }
         return commit(state, id, patch);
       });
     },

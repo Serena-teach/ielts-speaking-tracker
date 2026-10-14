@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus , Minus} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { AutoSaveInput } from "../components/AutoSaveInput";
 import { AutoSaveTextarea } from "../components/AutoSaveTextarea";
@@ -23,6 +23,7 @@ export default function QuestionDetail() {
   const loaded = useQuestionStore((state) => state.loaded);
   const updateQuestion = useQuestionStore((state) => state.updateQuestion);
   const incrementPractice = useQuestionStore((state) => state.incrementPractice);
+  const decrementPractice = useQuestionStore((state) => state.decrementPractice);
   const setStatus = useQuestionStore((state) => state.setStatus);
 
   if (!question) {
@@ -169,8 +170,19 @@ export default function QuestionDetail() {
               <Plus className="h-4 w-4" />
               练习次数 +1
             </button>
+            <button
+              type="button"
+              onClick={() => decrementPractice(question.id)}
+              disabled={(question.practiceCount ?? 0) <= 0}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white"
+              title="点错了？用这里撤销一次"
+            >
+              <Minus className="h-4 w-4" />
+              撤销一次练习
+            </button>
             <p className="mt-2 text-xs leading-relaxed text-slate-400">
-              点击后自动把当前时间记为最后练习日期；首次练习会从「未练」升级为「练过」。
+              点击「+1」自动把当前时间记为最后练习日期；首次练习会从「未练」升级为「练过」。
+              点错或重复记录时，用「撤销一次练习」把次数减回去（减到 0 会清空最后练习时间）。
             </p>
           </section>
 
