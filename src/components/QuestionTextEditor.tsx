@@ -120,9 +120,7 @@ export function QuestionTextEditor({ questions, onChange }: Props) {
           }
           return (
             <li key={index} className="flex items-start gap-2">
-              <span className="mt-2.5 w-4 shrink-0 text-right text-xs tabular-nums text-slate-400">
-                {index + 1}
-              </span>
+
               <textarea
                 value={item}
                 rows={Math.min(4, Math.max(1, Math.ceil(item.length / 58)))}

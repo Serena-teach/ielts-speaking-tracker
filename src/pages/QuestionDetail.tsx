@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Plus , Minus} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { AutoSaveInput } from "../components/AutoSaveInput";
 import { AutoSaveTextarea } from "../components/AutoSaveTextarea";
 import { MetaChips } from "../components/MetaChips";
-import { PracticeTimer } from "../components/PracticeTimer";
-import { Recorder } from "../components/Recorder";
+import { PracticeStudio } from "../components/PracticeStudio";
 import { QuestionTextEditor } from "../components/QuestionTextEditor";
 import { StatusSwitcher } from "../components/StatusSwitcher";
 import { TagInput } from "../components/TagInput";
@@ -70,6 +69,15 @@ export default function QuestionDetail() {
   const [activeSection, setActiveSection] = useState(0);
   const [editingAnswer, setEditingAnswer] = useState(false);
   const currentSection = answerSections[Math.min(activeSection, answerSections.length - 1)];
+  // 旧数据兼容：把原来「改进问题」里的内容并入「我的思路」，只做一次
+  const migratedNotesRef = useRef(false);
+  useEffect(() => {
+    if (migratedNotesRef.current || !question) return;
+    if (!question.improvementIssues.trim()) return;
+    migratedNotesRef.current = true;
+    const combined = [question.myThoughts.trim(), question.improvementIssues.trim()].filter(Boolean).join("\n\n");
+    updateQuestion(question.id, { myThoughts: combined, improvementIssues: "" });
+  }, [question, updateQuestion]);
 
   if (!question) {
     return (
@@ -208,35 +216,25 @@ export default function QuestionDetail() {
             </p>
           </section>
 
+          <PracticeStudio questionId={question.id} part={question.part} />
+
           <section className="card">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="card-title">我的思路 &amp; 改进问题</p>
-              <span className="text-xs text-slate-400">练之前看思路，练之后记问题</span>
+              <span className="text-xs text-slate-400">练前看思路，练后记问题</span>
             </div>
-            <div className="mt-3 space-y-4">
+            <div className="mt-3">
               <AutoSaveTextarea
-                label="我的思路"
+                label="我的思路 &amp; 改进问题"
                 collapsible
                 value={question.myThoughts}
                 onSave={(next) => patch({ myThoughts: next })}
-                rows={8}
-                placeholder={"关键词提纲 / 结构 / 可套用的个人例子…"}
-                hint="Part 2 建议按 4 个关键词写提纲，考场上只记关键词不背原文。"
-              />
-              <AutoSaveTextarea
-                label="改进问题"
-                collapsible
-                value={question.improvementIssues}
-                onSave={(next) => patch({ improvementIssues: next })}
-                rows={6}
-                placeholder={"例如：\n- 时态前后不一致\n- 连接词只有 and / but\n- 答案太短，缺少原因和例子"}
-                hint="记录每次练习暴露的问题，下次练习前先过一遍。"
+                rows={10}
+                placeholder={"练前：关键词提纲 / 结构 / 可套用的个人例子…\n\n练后：这次暴露的问题，例如\n- 时态前后不一致\n- 连接词只有 and / but\n- 答案太短，缺少原因和例子"}
+                hint="一块地方解决两件事：练之前写思路，练完之后记问题。"
               />
             </div>
           </section>
-
-          <PracticeTimer />
-          <Recorder questionId={question.id} />
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
