@@ -2,6 +2,7 @@ import { AlertTriangle, Loader2, RotateCcw, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ProgressBar } from "../components/ProgressBar";
+import { ReviewPanel } from "../components/ReviewPanel";
 import { QuestionListItem } from "../components/QuestionListItem";
 import { SectionNav, type SectionNavItem } from "../components/SectionNav";
 import {
@@ -89,6 +90,7 @@ export default function QuestionList() {
       </aside>
 
       <section className="space-y-4">
+        <ReviewPanel />
         <header className="card">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>

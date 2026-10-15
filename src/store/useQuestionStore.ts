@@ -2,6 +2,7 @@ import { create } from "zustand";
 import {
   clearAllStorage,
   readCustomQuestions,
+  initStorage,
   readRecords,
   storageUsageBytes,
   writeCustomQuestions,
@@ -269,6 +270,7 @@ export const useQuestionStore = create<QuestionStore>((set, get) => {
     load: async () => {
       set({ loading: true, error: null });
       try {
+        await initStorage(); // 先把 IndexedDB 里的记录灌进内存缓存（含 localStorage 迁移）
         const response = await fetch(`${import.meta.env.BASE_URL}questions.json`, {
           cache: "no-cache",
         });
