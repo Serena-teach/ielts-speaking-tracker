@@ -121,14 +121,14 @@ export default function QuestionDetail() {
           <section className="card">
             <div className="grid gap-4 sm:grid-cols-2">
               <AutoSaveInput
-                label="标题（英文）"
+                label="标题"
                 value={question.title}
                 onSave={(next) => patch({ title: next })}
                 placeholder="Travelling"
                 inputClassName="font-semibold"
               />
               <AutoSaveInput
-                label="题目中文（可选）"
+                label="题目中文"
                 value={question.titleZh ?? ""}
                 onSave={(next) => patch({ titleZh: next })}
                 placeholder="旅行"
@@ -136,7 +136,7 @@ export default function QuestionDetail() {
             </div>
 
             <div className="mt-6">
-              <p className="card-title mb-2">题目原文（英文）</p>
+              <p className="card-title mb-2">题目原文</p>
               <QuestionTextEditor
                 key={question.id}
                 questions={question.questions}
@@ -160,7 +160,7 @@ export default function QuestionDetail() {
             {editingAnswer ? (
               <div className="mt-3">
                 <AutoSaveTextarea
-                  label="参考答案（可编辑）"
+                  label="参考答案"
                   value={question.ninePointAnswer}
                   onSave={(next) => patch({ ninePointAnswer: next })}
                   rows={18}
