@@ -4,6 +4,8 @@ import { Link, useParams } from "react-router-dom";
 import { AutoSaveInput } from "../components/AutoSaveInput";
 import { AutoSaveTextarea } from "../components/AutoSaveTextarea";
 import { MetaChips } from "../components/MetaChips";
+import { PracticeTimer } from "../components/PracticeTimer";
+import { Recorder } from "../components/Recorder";
 import { QuestionTextEditor } from "../components/QuestionTextEditor";
 import { StatusSwitcher } from "../components/StatusSwitcher";
 import { TagInput } from "../components/TagInput";
@@ -16,6 +18,25 @@ import type { QuestionPatch } from "../store/useQuestionStore";
  * 左侧是内容编辑区（题目原文 / 9 分答案 / 高级词语 / 改进问题 / 我的思路），
  * 右侧是练习记录卡（状态切换、次数 +1、最后练习时间）。
  */
+/** 距今天数（负数=已过期） */
+function reviewDaysLeft(iso: string): number {
+  const target = new Date(iso).getTime();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((target - today.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function reviewDue(iso: string): boolean {
+  return reviewDaysLeft(iso) <= 0;
+}
+
+function reviewLabel(iso: string): string {
+  const days = reviewDaysLeft(iso);
+  const date = new Date(iso).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" });
+  if (days < 0) return `${date}（已到期 ${-days} 天）`;
+  if (days === 0) return `${date}（今天该复习）`;
+  return `${date}（${days} 天后）`;
+}
 const ANSWER_SECTIONS = ["【Part 1 示范答案】", "【Part 2 示范答案】", "【Part 3 观点与表达】", "【Part 3 全文】"];
 
 /** 把 9 分答案按小节标题切开，方便分块阅读（新版答案含 Part 3 全文） */
@@ -188,28 +209,34 @@ export default function QuestionDetail() {
           </section>
 
           <section className="card">
-            <AutoSaveTextarea
-              label="改进问题"
-              collapsible
-              value={question.improvementIssues}
-              onSave={(next) => patch({ improvementIssues: next })}
-              rows={6}
-              placeholder={"例如：\n- 时态前后不一致\n- 连接词只有 and / but\n- 答案太短，缺少原因和例子"}
-              hint="记录每次练习暴露的问题，下次练习前先过一遍。"
-            />
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="card-title">我的思路 &amp; 改进问题</p>
+              <span className="text-xs text-slate-400">练之前看思路，练之后记问题</span>
+            </div>
+            <div className="mt-3 space-y-4">
+              <AutoSaveTextarea
+                label="我的思路"
+                collapsible
+                value={question.myThoughts}
+                onSave={(next) => patch({ myThoughts: next })}
+                rows={8}
+                placeholder={"关键词提纲 / 结构 / 可套用的个人例子…"}
+                hint="Part 2 建议按 4 个关键词写提纲，考场上只记关键词不背原文。"
+              />
+              <AutoSaveTextarea
+                label="改进问题"
+                collapsible
+                value={question.improvementIssues}
+                onSave={(next) => patch({ improvementIssues: next })}
+                rows={6}
+                placeholder={"例如：\n- 时态前后不一致\n- 连接词只有 and / but\n- 答案太短，缺少原因和例子"}
+                hint="记录每次练习暴露的问题，下次练习前先过一遍。"
+              />
+            </div>
           </section>
 
-          <section className="card">
-            <AutoSaveTextarea
-              label="我的思路"
-              collapsible
-              value={question.myThoughts}
-              onSave={(next) => patch({ myThoughts: next })}
-              rows={8}
-              placeholder={"关键词提纲 / 结构 / 可套用的个人例子…"}
-              hint="Part 2 建议按 4 个关键词写提纲，考场上只记关键词不背原文。"
-            />
-          </section>
+          <PracticeTimer />
+          <Recorder questionId={question.id} />
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
@@ -232,6 +259,18 @@ export default function QuestionDetail() {
                 <dt className="shrink-0 text-slate-500">最后练习</dt>
                 <dd className="text-right tabular-nums text-slate-700">
                   {formatDateTime(question.lastPracticeDate)}
+                </dd>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <dt className="shrink-0 text-slate-500">下次复习</dt>
+                <dd className="text-right tabular-nums text-slate-700">
+                  {question.nextReviewAt ? (
+                    <span className={reviewDue(question.nextReviewAt) ? "font-semibold text-amber-600" : undefined}>
+                      {reviewLabel(question.nextReviewAt)}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
                 </dd>
               </div>
             </dl>

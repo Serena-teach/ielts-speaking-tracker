@@ -35,6 +35,10 @@ export type Question = {
   practiceCount: number;
   /** 最后一次练习日期，ISO 字符串，由「练习次数 +1」自动写入 */
   lastPracticeDate?: string;
+  /** 间隔复习：下次该复习的日期（ISO） */
+  nextReviewAt?: string;
+  /** 间隔复习：已完成的复习轮次（0=刚练过） */
+  reviewStage?: number;
 };
 
 /**
@@ -55,6 +59,8 @@ export type QuestionRecord = Partial<
     | "status"
     | "practiceCount"
     | "lastPracticeDate"
+    | "nextReviewAt"
+    | "reviewStage"
   >
 > & {
   updatedAt?: string;

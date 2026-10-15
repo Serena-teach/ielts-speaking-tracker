@@ -19,6 +19,15 @@ import type {
 } from "../types";
 
 /** 用户可编辑的字段（= QuestionRecord 去掉 updatedAt） */
+/** 间隔复习节奏：练过 → 3 天 → 7 天 → 21 天 → 45 天 */
+export const REVIEW_INTERVALS_DAYS = [3, 7, 21, 45] as const;
+
+/** 第 stage 次练习后，下一次该复习的日期（ISO） */
+export function nextReviewDate(from: Date, stage: number): string {
+  const days = REVIEW_INTERVALS_DAYS[Math.min(Math.max(stage - 1, 0), REVIEW_INTERVALS_DAYS.length - 1)];
+  const next = new Date(from.getTime() + days * 24 * 60 * 60 * 1000);
+  return next.toISOString();
+}
 export type QuestionPatch = QuestionRecord;
 
 const REGIONS: Region[] = ["mainland", "non-mainland"];
@@ -207,7 +216,7 @@ type QuestionStore = {
   load: () => Promise<void>;
   /** 局部更新某道题（自动落 localStorage） */
   updateQuestion: (id: string, patch: QuestionPatch) => void;
-  /** 练习次数 +1，同时自动记录最后练习日期 */
+  /** 练习次数 +1，同时自动记录最后练习日期并排下一次复习 */
   incrementPractice: (id: string) => void;
   /** 撤销一次练习记录（次数 -1；减到 0 时清空最后练习时间并回到「未练」） */
   decrementPractice: (id: string) => void;
@@ -304,9 +313,13 @@ export const useQuestionStore = create<QuestionStore>((set, get) => {
         const question = state.questions.find((item) => item.id === id);
         if (!question) return {};
         const nextCount = (question.practiceCount ?? 0) + 1;
+        const now = new Date();
+        const stage = (question.reviewStage ?? 0) + 1;
         const patch: QuestionPatch = {
           practiceCount: nextCount,
-          lastPracticeDate: new Date().toISOString(),
+          lastPracticeDate: now.toISOString(),
+          reviewStage: stage,
+          nextReviewAt: nextReviewDate(now, stage),
         };
         // 第一次练习时自动从「未练」升级为「练过」，用户之后仍可手动改回
         if (question.status === "not-practiced") patch.status = "practiced";
@@ -325,6 +338,10 @@ export const useQuestionStore = create<QuestionStore>((set, get) => {
           patch.lastPracticeDate = undefined;
           if (question.status === "practiced") patch.status = "not-practiced";
         }
+        // 撤销一次：复习轮次回退一步，重新排期
+        const backStage = Math.max(0, (question.reviewStage ?? 0) - 1);
+        patch.reviewStage = backStage;
+        patch.nextReviewAt = backStage === 0 ? undefined : nextReviewDate(new Date(), backStage);
         return commit(state, id, patch);
       });
     },
