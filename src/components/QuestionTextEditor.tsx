@@ -102,7 +102,6 @@ export function QuestionTextEditor({ questions, onChange }: Props) {
           if (item.trim().startsWith(BLOCK_HEADER_PREFIX)) {
             return (
               <li key={index} className="flex items-center gap-2">
-                <span className="w-4 shrink-0" />
                 <span className="flex flex-1 items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-xs font-semibold tracking-wide text-brand-900 ring-1 ring-inset ring-brand-100">
                   <Layers className="h-3.5 w-3.5" />
                   {item.trim()}
