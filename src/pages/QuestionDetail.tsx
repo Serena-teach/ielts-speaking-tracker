@@ -16,7 +16,7 @@ import type { QuestionPatch } from "../store/useQuestionStore";
  * 左侧是内容编辑区（题目原文 / 9 分答案 / 高级词语 / 改进问题 / 我的思路），
  * 右侧是练习记录卡（状态切换、次数 +1、最后练习时间）。
  */
-const ANSWER_SECTIONS = ["【Part 2 示范答案】", "【Part 3 观点与表达】", "【Part 3 全文】"];
+const ANSWER_SECTIONS = ["【Part 1 示范答案】", "【Part 2 示范答案】", "【Part 3 观点与表达】", "【Part 3 全文】"];
 
 /** 把 9 分答案按小节标题切开，方便分块阅读（新版答案含 Part 3 全文） */
 function splitAnswerSections(text: string): { title: string; body: string }[] {
@@ -190,6 +190,7 @@ export default function QuestionDetail() {
           <section className="card">
             <AutoSaveTextarea
               label="改进问题"
+              collapsible
               value={question.improvementIssues}
               onSave={(next) => patch({ improvementIssues: next })}
               rows={6}
@@ -201,6 +202,7 @@ export default function QuestionDetail() {
           <section className="card">
             <AutoSaveTextarea
               label="我的思路"
+              collapsible
               value={question.myThoughts}
               onSave={(next) => patch({ myThoughts: next })}
               rows={8}
