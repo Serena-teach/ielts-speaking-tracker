@@ -123,7 +123,7 @@ export function QuestionTextEditor({ questions, onChange }: Props) {
 
               <textarea
                 value={item}
-                rows={Math.min(4, Math.max(1, Math.ceil(item.length / 58)))}
+                rows={Math.min(8, Math.max(1, item.split("\n").length + Math.floor(item.length / 70)))}
                 onChange={(event) => updateAt(index, event.target.value)}
                 placeholder={index === 0 ? "What transport do you often use when travelling?" : "继续添加小问…"}
                 className="thin-scrollbar w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-700 focus:ring-2 focus:ring-brand-100"
