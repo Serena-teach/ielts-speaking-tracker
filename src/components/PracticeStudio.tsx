@@ -137,7 +137,7 @@ export function PracticeStudio({ questionId, part }: { questionId: string; part:
       mediaRef.current = recorder;
       setRecording(true);
     } catch {
-      setMicError("拿不到麦克风权限：点地址栏左侧的锁图标，把麦克风改成「允许」。");
+      setMicError("拿不到麦克风权限。先按 Ctrl+F5 刷新页面（或关闭标签页重开）再点「开始」；如果内置浏览器仍然不给权限，请改用 Chrome / Edge 打开同一网址录音（注意：两个浏览器的练习记录不互通）。");
     }
   }
 
