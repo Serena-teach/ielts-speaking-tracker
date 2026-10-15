@@ -14,7 +14,7 @@ import type { QuestionPatch } from "../store/useQuestionStore";
 
 /**
  * 题目详情页（/question/:id）
- * 左侧是内容编辑区（题目原文 / 9 分答案 / 高级词语 / 改进问题 / 我的思路），
+ * 左侧是内容编辑区（题目原文 / 参考答案 / 高级词语 / 改进问题 / 我的思路），
  * 右侧是练习记录卡（状态切换、次数 +1、最后练习时间）。
  */
 /** 距今天数（负数=已过期） */
@@ -38,7 +38,7 @@ function reviewLabel(iso: string): string {
 }
 const ANSWER_SECTIONS = ["【Part 1 示范答案】", "【Part 2 示范答案】", "【Part 3 观点与表达】", "【Part 3 全文】"];
 
-/** 把 9 分答案按小节标题切开，方便分块阅读（新版答案含 Part 3 全文） */
+/** 把 参考答案按小节标题切开，方便分块阅读（新版答案含 Part 3 全文） */
 function splitAnswerSections(text: string): { title: string; body: string }[] {
   const found = ANSWER_SECTIONS
     .map((title) => ({ title, at: text.indexOf(title) }))
@@ -64,7 +64,7 @@ export default function QuestionDetail() {
   const incrementPractice = useQuestionStore((state) => state.incrementPractice);
   const decrementPractice = useQuestionStore((state) => state.decrementPractice);
   const setStatus = useQuestionStore((state) => state.setStatus);
-  // 9 分答案分节阅读（Part 2 示范 / Part 3 观点 / Part 3 全文）
+  // 参考答案分节阅读（Part 2 示范 / Part 3 观点 / Part 3 全文）
   const answerSections = splitAnswerSections(question?.ninePointAnswer ?? "");
   const [activeSection, setActiveSection] = useState(0);
   const [editingAnswer, setEditingAnswer] = useState(false);
@@ -147,7 +147,7 @@ export default function QuestionDetail() {
 
           <section className="card">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="card-title">9 分答案</p>
+              <p className="card-title">参考答案</p>
               <button
                 type="button"
                 onClick={() => setEditingAnswer((value) => !value)}
@@ -160,7 +160,7 @@ export default function QuestionDetail() {
             {editingAnswer ? (
               <div className="mt-3">
                 <AutoSaveTextarea
-                  label="9 分答案（可编辑）"
+                  label="参考答案（可编辑）"
                   value={question.ninePointAnswer}
                   onSave={(next) => patch({ ninePointAnswer: next })}
                   rows={18}
@@ -216,8 +216,6 @@ export default function QuestionDetail() {
             </p>
           </section>
 
-          <PracticeStudio questionId={question.id} part={question.part} />
-
           <section className="card">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="card-title">我的思路 &amp; 改进问题</p>
@@ -225,7 +223,6 @@ export default function QuestionDetail() {
             </div>
             <div className="mt-3">
               <AutoSaveTextarea
-                label="我的思路 &amp; 改进问题"
                 collapsible
                 value={question.myThoughts}
                 onSave={(next) => patch({ myThoughts: next })}
@@ -295,6 +292,8 @@ export default function QuestionDetail() {
               点错或重复记录时，用「撤销一次练习」把次数减回去（减到 0 会清空最后练习时间）。
             </p>
           </section>
+
+          <PracticeStudio questionId={question.id} part={question.part} />
 
           <section className="card text-xs leading-relaxed text-slate-500">
             <p className="text-sm font-semibold text-slate-700">小提示</p>

@@ -4,13 +4,14 @@ import { cn } from "../lib/utils";
 import { SaveIndicator } from "./SaveIndicator";
 
 type Props = {
-  label: string;
+  /** 留空则不显示字段名（外层卡片已有标题时用） */
+  label?: string;
   value: string;
   onSave: (next: string) => void;
   placeholder?: string;
   rows?: number;
   hint?: ReactNode;
-  /** 9 分答案是英文长文，用衬线字体阅读更舒服 */
+  /** 参考答案是英文长文，用衬线字体阅读更舒服 */
   serif?: boolean;
   /** 是否在右下角显示字符数 */
   showCount?: boolean;
@@ -40,7 +41,9 @@ export function AutoSaveTextarea({
   return (
     <div className={cn("block", className)}>
       <div className="mb-1.5 flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
+        {label ? (
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
+        ) : null}
         <div className="flex items-center gap-2">
           <SaveIndicator state={state} />
           {collapsible && draft.trim() ? (

@@ -23,7 +23,7 @@ export type Question = {
   titleZh?: string;
   /** 题目原文，Part 1 是若干小问；Part 2&3 可以放卡片描述 + 追问 */
   questions: string[];
-  /** 9 分答案（用户自己整理） */
+  /** 参考答案（用户自己整理） */
   ninePointAnswer: string;
   /** 参考高级词语 */
   advancedWords: string[];

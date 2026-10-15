@@ -78,7 +78,7 @@ export default function Settings() {
     );
     setMessage({
       type: "ok",
-      text: `已导出 ${payload.questions.length} 道题（含 9 分答案、高级词语、练习记录）。`,
+      text: `已导出 ${payload.questions.length} 道题（含 参考答案、高级词语、练习记录）。`,
     });
   };
 
@@ -266,7 +266,7 @@ export default function Settings() {
           <h2 className="text-sm font-semibold text-slate-900">导出 JSON</h2>
         </div>
         <p className="mt-2 text-sm leading-relaxed text-slate-500">
-          导出内容包含全部题目、9 分答案、高级词语、改进问题、我的思路与练习记录，可直接用于备份或迁移到另一台设备。
+          导出内容包含全部题目、参考答案、高级词语、改进问题、我的思路与练习记录，可直接用于备份或迁移到另一台设备。
         </p>
         <button
           type="button"
@@ -377,7 +377,7 @@ export default function Settings() {
         open={confirmOpen}
         danger
         title="确定要清空所有数据吗？"
-        description={"练习记录、9 分答案、高级词语、导入的题目都会被删除。\n建议先导出 JSON 备份。"}
+        description={"练习记录、参考答案、高级词语、导入的题目都会被删除。\n建议先导出 JSON 备份。"}
         confirmLabel="确认清空"
         onConfirm={handleClear}
         onCancel={() => setConfirmOpen(false)}
