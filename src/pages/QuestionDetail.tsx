@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowLeft, Plus , Minus} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { AutoSaveInput } from "../components/AutoSaveInput";
@@ -15,6 +16,24 @@ import type { QuestionPatch } from "../store/useQuestionStore";
  * 左侧是内容编辑区（题目原文 / 9 分答案 / 高级词语 / 改进问题 / 我的思路），
  * 右侧是练习记录卡（状态切换、次数 +1、最后练习时间）。
  */
+const ANSWER_SECTIONS = ["【Part 2 示范答案】", "【Part 3 观点与表达】", "【Part 3 全文】"];
+
+/** 把 9 分答案按小节标题切开，方便分块阅读（新版答案含 Part 3 全文） */
+function splitAnswerSections(text: string): { title: string; body: string }[] {
+  const found = ANSWER_SECTIONS
+    .map((title) => ({ title, at: text.indexOf(title) }))
+    .filter((item) => item.at >= 0)
+    .sort((a, b) => a.at - b.at);
+  if (!found.length) return [{ title: "全部内容", body: text }];
+  const head = text.slice(0, found[0].at).trim();
+  const parts = found.map((item, index) => ({
+    title: item.title,
+    body: text
+      .slice(item.at + item.title.length, index + 1 < found.length ? found[index + 1].at : text.length)
+      .trim(),
+  }));
+  return head ? [{ title: "开头", body: head }, ...parts] : parts;
+}
 export default function QuestionDetail() {
   const { id } = useParams<{ id: string }>();
   const question = useQuestionStore((state) =>
@@ -25,6 +44,11 @@ export default function QuestionDetail() {
   const incrementPractice = useQuestionStore((state) => state.incrementPractice);
   const decrementPractice = useQuestionStore((state) => state.decrementPractice);
   const setStatus = useQuestionStore((state) => state.setStatus);
+  // 9 分答案分节阅读（Part 2 示范 / Part 3 观点 / Part 3 全文）
+  const answerSections = splitAnswerSections(question?.ninePointAnswer ?? "");
+  const [activeSection, setActiveSection] = useState(0);
+  const [editingAnswer, setEditingAnswer] = useState(false);
+  const currentSection = answerSections[Math.min(activeSection, answerSections.length - 1)];
 
   if (!question) {
     return (
@@ -93,16 +117,63 @@ export default function QuestionDetail() {
           </section>
 
           <section className="card">
-            <AutoSaveTextarea
-              label="9 分答案"
-              value={question.ninePointAnswer}
-              onSave={(next) => patch({ ninePointAnswer: next })}
-              rows={14}
-              serif
-              showCount
-              placeholder={"I'd say the metro is my go-to option…\n\n建议写完整段落，方便出声练习时直接照着说。"}
-              hint="写考场上真的能说出口的版本，比堆难词更管用。"
-            />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="card-title">9 分答案</p>
+              <button
+                type="button"
+                onClick={() => setEditingAnswer((value) => !value)}
+                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              >
+                {editingAnswer ? "收起编辑框" : "编辑原文"}
+              </button>
+            </div>
+
+            {editingAnswer ? (
+              <div className="mt-3">
+                <AutoSaveTextarea
+                  label="9 分答案（可编辑）"
+                  value={question.ninePointAnswer}
+                  onSave={(next) => patch({ ninePointAnswer: next })}
+                  rows={18}
+                  serif
+                  showCount
+                  placeholder={"I'd say the metro is my go-to option…\n\n建议写完整段落，方便出声练习时直接照着说。"}
+                  hint="改完自动保存；这里改的是「我的版本」，题库原文不会被改动。"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {answerSections.map((section, index) => {
+                    const active = index === Math.min(activeSection, answerSections.length - 1);
+                    return (
+                      <button
+                        key={section.title}
+                        type="button"
+                        onClick={() => setActiveSection(index)}
+                        className={
+                          "rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 transition " +
+                          (active
+                            ? "bg-brand-900 text-white ring-brand-900"
+                            : "bg-white text-slate-600 ring-slate-200 hover:text-slate-900")
+                        }
+                      >
+                        {section.title.replace(/[【】]/g, "")}
+                        <span className="ml-1.5 font-normal opacity-70">{(section.body.length / 1).toFixed(0)} 字</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                  <pre className="whitespace-pre-wrap font-serif text-[15px] leading-7 text-slate-800">
+                    {currentSection?.body}
+                  </pre>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                  上方按钮可切换小节；点「编辑原文」可以在同一块里改自己的版本。
+                </p>
+              </>
+            )}
           </section>
 
           <section className="card">
