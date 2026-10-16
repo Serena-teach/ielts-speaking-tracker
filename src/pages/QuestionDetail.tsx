@@ -235,6 +235,8 @@ export default function QuestionDetail() {
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <PracticeStudio questionId={question.id} part={question.part} />
+
           <section className="card">
             <h2 className="text-sm font-semibold text-slate-900">练习记录</h2>
             <div className="mt-3">
@@ -292,8 +294,6 @@ export default function QuestionDetail() {
               点错或重复记录时，用「撤销一次练习」把次数减回去（减到 0 会清空最后练习时间）。
             </p>
           </section>
-
-          <PracticeStudio questionId={question.id} part={question.part} />
 
           <section className="card text-xs leading-relaxed text-slate-500">
             <p className="text-sm font-semibold text-slate-700">小提示</p>
